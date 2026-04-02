@@ -67,8 +67,8 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#f0f2f5' }}>
-      <Card style={{ width: 400 }}>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 'calc(100vh - 50px)', background: '#f0f2f5' }}>
+      <Card style={{ width: 420, boxShadow: '0 4px 24px rgba(0,0,0,0.1)', borderRadius: 12 }}>
         <Title level={3} style={{ textAlign: 'center' }}>Reset Password</Title>
         <Suspense fallback={<Spin style={{ display: 'block', margin: '20px auto' }} />}>
           <ResetPasswordForm />

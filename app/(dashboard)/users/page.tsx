@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Table, Input, Select, Button, Space, Tag, Typography } from 'antd';
+import { Table, Input, Select, Button, Space, Tag, Typography, Card } from 'antd';
 import { SearchOutlined, ClearOutlined } from '@ant-design/icons';
 import type { TablePaginationConfig } from 'antd';
 import Link from 'next/link';
@@ -87,24 +87,26 @@ export default function UserListPage() {
   return (
     <>
       <Title level={4}>Users</Title>
-      <Space style={{ marginBottom: 16 }} wrap>
-        <Input placeholder="Name" value={filterName} onChange={(e) => setFilterName(e.target.value)} style={{ width: 180 }} />
-        <Input placeholder="Email" value={filterEmail} onChange={(e) => setFilterEmail(e.target.value)} style={{ width: 180 }} />
-        <Select
-          placeholder="Status"
-          value={filterStatus}
-          onChange={setFilterStatus}
-          allowClear
-          style={{ width: 130 }}
-          options={[
-            { value: 1, label: 'Active' },
-            { value: 2, label: 'Inactive' },
-            { value: 3, label: 'Deleted' },
-          ]}
-        />
-        <Button icon={<SearchOutlined />} type="primary" onClick={handleSearch}>Search</Button>
-        <Button icon={<ClearOutlined />} onClick={handleClear}>Clear</Button>
-      </Space>
+      <Card size="small" style={{ marginBottom: 16 }}>
+        <Space wrap>
+          <Input placeholder="Name" value={filterName} onChange={(e) => setFilterName(e.target.value)} onPressEnter={handleSearch} style={{ width: 180 }} />
+          <Input placeholder="Email" value={filterEmail} onChange={(e) => setFilterEmail(e.target.value)} onPressEnter={handleSearch} style={{ width: 180 }} />
+          <Select
+            placeholder="Status"
+            value={filterStatus}
+            onChange={setFilterStatus}
+            allowClear
+            style={{ width: 130 }}
+            options={[
+              { value: 1, label: 'Active' },
+              { value: 2, label: 'Inactive' },
+              { value: 3, label: 'Deleted' },
+            ]}
+          />
+          <Button icon={<SearchOutlined />} type="primary" onClick={handleSearch}>Search</Button>
+          <Button icon={<ClearOutlined />} onClick={handleClear}>Clear</Button>
+        </Space>
+      </Card>
       <Table
         rowKey="Id"
         columns={columns}
@@ -112,6 +114,7 @@ export default function UserListPage() {
         loading={loading}
         pagination={{ current: page, pageSize, total, showSizeChanger: true }}
         onChange={handleTableChange}
+        style={{ background: '#fff', borderRadius: 8 }}
       />
     </>
   );

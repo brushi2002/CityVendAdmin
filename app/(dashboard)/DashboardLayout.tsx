@@ -48,15 +48,17 @@ export default function DashboardLayout({ children, email }: { children: React.R
     <Layout style={{ minHeight: '100vh' }}>
       <Sider trigger={null} collapsible collapsed={collapsed}>
         <div style={{
-          height: 64,
+          height: 48,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: '#fff',
-          fontSize: collapsed ? 14 : 18,
-          fontWeight: 600,
+          color: 'rgba(255,255,255,0.65)',
+          fontSize: 12,
+          textTransform: 'uppercase',
+          letterSpacing: '1px',
+          borderBottom: '1px solid rgba(255,255,255,0.1)',
         }}>
-          {collapsed ? 'CV' : 'CityVend'}
+          {collapsed ? '' : 'Navigation'}
         </div>
         <Menu
           theme="dark"
@@ -83,6 +85,8 @@ export default function DashboardLayout({ children, email }: { children: React.R
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
+          borderBottom: '1px solid #f0f0f0',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
         }}>
           <Button
             type="text"
