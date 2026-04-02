@@ -3,9 +3,10 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getUserByEmail, getUserById, getUsersByFilter, updatePasswordByUserId, updatePasswordResetCode, resetPassword as resetPw } from '@/library/users.repository';
-import { getBusinessById } from '@/library/dashboard.repository';
+import { getBusinessById, updateUserStatus } from '@/library/dashboard.repository';
 import { validatePassword, hashPassword, generateToken, validateToken } from '@/library/auth.helpers';
 import type { UserSearchFiltration, SearchResult, UserViewModel } from '@/library/types';
+import { Status } from '@/library/types';
 import crypto from 'crypto';
 
 // --- Auth ---
@@ -96,6 +97,14 @@ export async function adminResetUserPassword(userId: number, newPassword: string
 
   const hashed = await hashPassword(newPassword);
   const result = await updatePasswordByUserId(userId, hashed);
+  return { success: result > 0 };
+}
+
+export async function deleteUser(userId: number, reason: string) {
+  const session = await getSession();
+  if (!session) return { error: 'Not authenticated' };
+
+  const result = await updateUserStatus(userId, Status.Delete, reason);
   return { success: result > 0 };
 }
 

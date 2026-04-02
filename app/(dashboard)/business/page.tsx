@@ -1,15 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Table, Input, Select, Button, Space, Tag, Typography, Card } from 'antd';
+import { Table, Input, Select, Button, Space, Tag, Typography, Card, Descriptions, Spin } from 'antd';
 import { SearchOutlined, ClearOutlined } from '@ant-design/icons';
 import type { TablePaginationConfig } from 'antd';
-import Link from 'next/link';
-import { fetchUsers } from '../../actions';
+import { fetchUsers, fetchBusinessById } from '../../actions';
 
 const { Title } = Typography;
 
 const statusColors: Record<number, string> = { 1: 'blue', 2: 'orange', 3: 'red' };
+const dayNames = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 export default function BusinessListPage() {
   const [data, setData] = useState<any[]>([]);
@@ -20,7 +20,8 @@ export default function BusinessListPage() {
   const [filterName, setFilterName] = useState('');
   const [filterEmail, setFilterEmail] = useState('');
   const [filterStatus, setFilterStatus] = useState<number | undefined>();
-
+  const [expandedDetails, setExpandedDetails] = useState<Record<number, any>>({});
+  const [loadingDetails, setLoadingDetails] = useState<Record<number, boolean>>({});
   const load = async (pg: number, ps: number, name?: string, email?: string, status?: number) => {
     setLoading(true);
     try {
@@ -64,12 +65,22 @@ export default function BusinessListPage() {
     load(pg, ps, filterName, filterEmail, filterStatus);
   };
 
+  const handleExpand = async (expanded: boolean, record: any) => {
+    if (!expanded || expandedDetails[record.BusinessId]) return;
+
+    setLoadingDetails((prev) => ({ ...prev, [record.BusinessId]: true }));
+    try {
+      const business = await fetchBusinessById(record.BusinessId);
+      if (business) {
+        setExpandedDetails((prev) => ({ ...prev, [record.BusinessId]: business }));
+      }
+    } finally {
+      setLoadingDetails((prev) => ({ ...prev, [record.BusinessId]: false }));
+    }
+  };
+
   const columns = [
-    {
-      title: 'Name',
-      dataIndex: 'UserName',
-      render: (text: string, record: any) => <Link href={`/business/${record.BusinessId}`}>{text}</Link>,
-    },
+    { title: 'Name', dataIndex: 'UserName' },
     { title: 'Email', dataIndex: 'Email' },
     { title: 'Phone', dataIndex: 'Phone' },
     { title: 'Category', dataIndex: 'BusinessCategory' },
@@ -85,6 +96,87 @@ export default function BusinessListPage() {
       render: (val: string) => val ? new Date(val).toLocaleDateString() : '',
     },
   ];
+
+  const expandedRowRender = (record: any) => {
+    const business = expandedDetails[record.BusinessId];
+
+    if (loadingDetails[record.BusinessId] || !business) {
+      return <div style={{ padding: 24, textAlign: 'center' }}><Spin /></div>;
+    }
+
+    return (
+      <div style={{ padding: '8px 0' }}>
+        <Card title="Contact Information" size="small" style={{ marginBottom: 12 }}>
+          <Descriptions column={2} size="small">
+            <Descriptions.Item label="Phone">{business.PhoneNumber}</Descriptions.Item>
+            <Descriptions.Item label="Email">{business.Email}</Descriptions.Item>
+            <Descriptions.Item label="Website">{business.Website}</Descriptions.Item>
+            <Descriptions.Item label="Category">{business.Category}</Descriptions.Item>
+            <Descriptions.Item label="Type">{business.Type}</Descriptions.Item>
+            <Descriptions.Item label="Group">{business.GroupName}</Descriptions.Item>
+          </Descriptions>
+        </Card>
+
+        <Card title="Primary Address" size="small" style={{ marginBottom: 12 }}>
+          <Descriptions column={2} size="small">
+            <Descriptions.Item label="Address">{[business.Address1, business.Address2].filter(Boolean).join(', ')}</Descriptions.Item>
+            <Descriptions.Item label="City">{business.City}</Descriptions.Item>
+            <Descriptions.Item label="State">{business.State}</Descriptions.Item>
+            <Descriptions.Item label="Zip">{business.Zip}</Descriptions.Item>
+          </Descriptions>
+        </Card>
+
+        {business.CurrentAddress1 && (
+          <Card title="Current Location" size="small" style={{ marginBottom: 12 }}>
+            <Descriptions column={2} size="small">
+              <Descriptions.Item label="Address">{[business.CurrentAddress1, business.CurrentAddress2].filter(Boolean).join(', ')}</Descriptions.Item>
+              <Descriptions.Item label="City">{business.CurrentCity}</Descriptions.Item>
+              <Descriptions.Item label="State">{business.CurrentState}</Descriptions.Item>
+              <Descriptions.Item label="Zip">{business.CurrentZip}</Descriptions.Item>
+            </Descriptions>
+          </Card>
+        )}
+
+        {business.MessageFromOwner && (
+          <Card title="Owner&apos;s Message" size="small" style={{ marginBottom: 12 }}>
+            <p style={{ margin: 0 }}>{business.MessageFromOwner}</p>
+          </Card>
+        )}
+
+        {business.AdditionalInformation && (
+          <Card title="Additional Information" size="small" style={{ marginBottom: 12 }}>
+            <p style={{ margin: 0 }}>{business.AdditionalInformation}</p>
+          </Card>
+        )}
+
+        {business.Hours?.length > 0 && (
+          <Card title="Business Hours" size="small" style={{ marginBottom: 12 }}>
+            <Table
+              rowKey="Id"
+              dataSource={business.Hours}
+              pagination={false}
+              size="small"
+              columns={[
+                { title: 'Day', dataIndex: 'DayId', render: (val: number) => dayNames[val] || val },
+                { title: 'Start', dataIndex: 'StartTime' },
+                { title: 'End', dataIndex: 'EndTime' },
+              ]}
+            />
+          </Card>
+        )}
+
+        {business.AccountDeletedOn && (
+          <Card title="Deletion Info" size="small" style={{ marginBottom: 12 }}>
+            <Descriptions column={1} size="small">
+              <Descriptions.Item label="Deleted On">{new Date(business.AccountDeletedOn).toLocaleDateString()}</Descriptions.Item>
+              <Descriptions.Item label="Reason">{business.AccountDeleteReason}</Descriptions.Item>
+            </Descriptions>
+          </Card>
+        )}
+
+      </div>
+    );
+  };
 
   return (
     <>
@@ -116,6 +208,10 @@ export default function BusinessListPage() {
         loading={loading}
         pagination={{ current: page, pageSize, total, showSizeChanger: true }}
         onChange={handleTableChange}
+        expandable={{
+          expandedRowRender,
+          onExpand: handleExpand,
+        }}
         style={{ background: '#fff', borderRadius: 8 }}
       />
     </>

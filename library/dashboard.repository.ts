@@ -35,3 +35,13 @@ export async function getBusinessCategories(): Promise<BusinessCategoryMaster[]>
   const result = await pool.request().execute('BusinessCategoryMasterGet');
   return result.recordset as BusinessCategoryMaster[];
 }
+
+export async function updateUserStatus(userId: number, status: number, accountDeleteReason: string): Promise<number> {
+  const pool = await getPool();
+  const result = await pool.request()
+    .input('UserId', sql.Int, userId)
+    .input('Status', sql.Int, status)
+    .input('AccountDeleteReason', sql.NVarChar(sql.MAX), accountDeleteReason)
+    .execute('UserStatusUpdate');
+  return result.rowsAffected[0] ?? 0;
+}
