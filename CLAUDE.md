@@ -55,6 +55,11 @@ Ant Design 5 with `@ant-design/nextjs-registry` for SSR compatibility. The `(das
 
 `@/*` maps to the project root (e.g., `@/library/types`).
 
+## Code Style
+
+- **Comments**: Add a descriptive comment to every new method or function. Also add comments to existing code when the logic is non-obvious or could benefit from clarification.
+- **README updates**: After making changes, check if `README.md` needs to be updated (e.g., new features, changed setup steps, new environment variables, new dependencies). Update it if so.
+
 ## Key Constraints
 
 - **Stored procedure compatibility**: All database operations use existing stored procedures shared with the .NET backend. Do not introduce raw SQL queries or ORM patterns.

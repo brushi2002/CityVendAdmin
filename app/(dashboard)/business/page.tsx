@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Table, Input, Select, Button, Space, Tag, Typography, Card, Descriptions, Spin } from 'antd';
-import { SearchOutlined, ClearOutlined } from '@ant-design/icons';
+import { Table, Input, Select, Button, Space, Tag, Typography, Card, Descriptions, Spin, Popconfirm, message } from 'antd';
+import { SearchOutlined, ClearOutlined, DeleteOutlined } from '@ant-design/icons';
 import type { TablePaginationConfig } from 'antd';
-import { fetchUsers, fetchBusinessById } from '../../actions';
+import { fetchUsers, fetchBusinessById, deleteBusiness } from '../../actions';
 
 const { Title } = Typography;
 
@@ -22,6 +22,7 @@ export default function BusinessListPage() {
   const [filterStatus, setFilterStatus] = useState<number | undefined>();
   const [expandedDetails, setExpandedDetails] = useState<Record<number, any>>({});
   const [loadingDetails, setLoadingDetails] = useState<Record<number, boolean>>({});
+  const [deleteReason, setDeleteReason] = useState('');
   const load = async (pg: number, ps: number, name?: string, email?: string, status?: number) => {
     setLoading(true);
     try {
@@ -76,6 +77,23 @@ export default function BusinessListPage() {
       }
     } finally {
       setLoadingDetails((prev) => ({ ...prev, [record.BusinessId]: false }));
+    }
+  };
+
+  // Soft-deletes the business by setting its owner vendor's status to Deleted
+  const handleDelete = async (record: any) => {
+    const result = await deleteBusiness(record.Id, deleteReason);
+    if (result.success) {
+      message.success('Business deleted');
+      setDeleteReason('');
+      setExpandedDetails((prev) => {
+        const next = { ...prev };
+        delete next[record.BusinessId];
+        return next;
+      });
+      load(page, pageSize, filterName, filterEmail, filterStatus);
+    } else if ('error' in result) {
+      message.error(result.error);
     }
   };
 
@@ -174,6 +192,26 @@ export default function BusinessListPage() {
           </Card>
         )}
 
+        {business.Status !== 3 && (
+          <Popconfirm
+            title="Delete this business?"
+            description={
+              <Input.TextArea
+                placeholder="Reason for deletion (optional)"
+                value={deleteReason}
+                onChange={(e) => setDeleteReason(e.target.value)}
+                rows={2}
+                style={{ marginTop: 8 }}
+              />
+            }
+            onConfirm={() => handleDelete(record)}
+            onCancel={() => setDeleteReason('')}
+            okText="Delete"
+            okButtonProps={{ danger: true }}
+          >
+            <Button danger icon={<DeleteOutlined />}>Delete Business</Button>
+          </Popconfirm>
+        )}
       </div>
     );
   };

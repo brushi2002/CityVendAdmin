@@ -108,6 +108,15 @@ export async function deleteUser(userId: number, reason: string) {
   return { success: result > 0 };
 }
 
+// Soft-deletes a business by setting its owner vendor's status to Deleted
+export async function deleteBusiness(vendorUserId: number, reason: string) {
+  const session = await getSession();
+  if (!session) return { error: 'Not authenticated' };
+
+  const result = await updateUserStatus(vendorUserId, Status.Delete, reason);
+  return { success: result > 0 };
+}
+
 export async function changePassword(oldPassword: string, newPassword: string) {
   if (newPassword.length < 6) return { error: 'Password must be at least 6 characters' };
 
