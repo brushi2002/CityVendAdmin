@@ -132,6 +132,9 @@ export default function BusinessListPage() {
             <Descriptions.Item label="Category">{business.Category}</Descriptions.Item>
             <Descriptions.Item label="Type">{business.Type}</Descriptions.Item>
             <Descriptions.Item label="Group">{business.GroupName}</Descriptions.Item>
+            <Descriptions.Item label="Subscription">
+              <Tag color={business.IsSubscribed ? 'green' : 'default'}>{business.IsSubscribed ? 'Subscribed' : 'Not Subscribed'}</Tag>
+            </Descriptions.Item>
           </Descriptions>
         </Card>
 
