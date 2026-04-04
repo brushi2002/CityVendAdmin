@@ -101,6 +101,7 @@ export default function BusinessListPage() {
     { title: 'Name', dataIndex: 'UserName' },
     { title: 'Email', dataIndex: 'Email' },
     { title: 'Phone', dataIndex: 'Phone' },
+    { title: 'Business Name', dataIndex: 'BusinessName' },
     { title: 'Category', dataIndex: 'BusinessCategory' },
     { title: 'Type', dataIndex: 'BusinessType' },
     {
