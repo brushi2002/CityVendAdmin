@@ -111,7 +111,7 @@ export default function BusinessListPage() {
         delete next[record.BusinessId ?? record.Id];
         return next;
       });
-      load(page, pageSize, filterName, filterEmail, filterStatus);
+      load(page, pageSize, filterName, filterEmail, 1);
     } else if ('error' in result) {
       message.error(result.error);
     }
