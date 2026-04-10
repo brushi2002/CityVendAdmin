@@ -1,4 +1,4 @@
-import { fetchBusinessById } from '../../../actions';
+import { fetchBusinessById, fetchHotspotsByBusinessId } from '../../../actions';
 import { notFound } from 'next/navigation';
 import BusinessDetailsView from './BusinessDetailsView';
 
@@ -6,8 +6,11 @@ export default async function BusinessDetailsPage({ params }: { params: { id: st
   const id = parseInt(params.id, 10);
   if (isNaN(id)) notFound();
 
-  const business = await fetchBusinessById(id);
+  const [business, hotspots] = await Promise.all([
+    fetchBusinessById(id),
+    fetchHotspotsByBusinessId(id),
+  ]);
   if (!business) notFound();
 
-  return <BusinessDetailsView business={business} />;
+  return <BusinessDetailsView business={business} hotspots={hotspots} />;
 }

@@ -1,5 +1,5 @@
 import { getPool, sql } from './db';
-import type { BusinessDetails, BusinessHour, UserFile, BusinessTypeMaster, BusinessCategoryMaster } from './types';
+import type { BusinessDetails, BusinessHour, UserFile, BusinessTypeMaster, BusinessCategoryMaster, Hotspot } from './types';
 import { getStatusText, getBusinessGroupName } from './types';
 
 export async function getBusinessById(id: number, userId: number): Promise<BusinessDetails | null> {
@@ -34,6 +34,14 @@ export async function getBusinessCategories(): Promise<BusinessCategoryMaster[]>
   const pool = await getPool();
   const result = await pool.request().execute('BusinessCategoryMasterGet');
   return result.recordset as BusinessCategoryMaster[];
+}
+
+export async function getHotspotsByBusinessId(businessId: number): Promise<Hotspot[]> {
+  const pool = await getPool();
+  const result = await pool.request()
+    .input('BusinessId', sql.Int, businessId)
+    .execute('HotspotsGetByBusinessId');
+  return result.recordset as Hotspot[];
 }
 
 export async function updateUserStatus(userId: number, status: number, accountDeleteReason: string): Promise<number> {

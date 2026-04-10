@@ -6,6 +6,7 @@ import { Layout, Menu, Dropdown, Button, theme } from 'antd';
 import {
   ShopOutlined,
   UserOutlined,
+  DeleteOutlined,
   LogoutOutlined,
   SettingOutlined,
   MenuFoldOutlined,
@@ -22,7 +23,9 @@ export default function DashboardLayout({ children, email }: { children: React.R
   const pathname = usePathname();
   const { token: themeToken } = theme.useToken();
 
-  const selectedKey = pathname.startsWith('/users') ? 'users' :
+  const selectedKey =
+    pathname.startsWith('/deleted-businesses') ? 'deleted-businesses' :
+    pathname.startsWith('/users') ? 'users' :
     pathname.startsWith('/business') ? 'business' : '';
 
   const handleLogout = async () => {
@@ -69,6 +72,11 @@ export default function DashboardLayout({ children, email }: { children: React.R
               key: 'business',
               icon: <ShopOutlined />,
               label: <Link href="/business">Business</Link>,
+            },
+            {
+              key: 'deleted-businesses',
+              icon: <DeleteOutlined />,
+              label: <Link href="/deleted-businesses">Deleted Businesses</Link>,
             },
             {
               key: 'users',

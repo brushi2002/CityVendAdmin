@@ -3,7 +3,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getUserByEmail, getUserById, getUsersByFilter, updatePasswordByUserId, updatePasswordResetCode, resetPassword as resetPw } from '@/library/users.repository';
-import { getBusinessById, updateUserStatus } from '@/library/dashboard.repository';
+import { getBusinessById, getHotspotsByBusinessId, updateUserStatus } from '@/library/dashboard.repository';
 import { validatePassword, hashPassword, generateToken, validateToken } from '@/library/auth.helpers';
 import type { UserSearchFiltration, SearchResult, UserViewModel } from '@/library/types';
 import { Status } from '@/library/types';
@@ -91,6 +91,12 @@ export async function fetchBusinessById(id: number) {
   const session = await getSession();
   if (!session) return null;
   return getBusinessById(id, session.UserId);
+}
+
+export async function fetchHotspotsByBusinessId(businessId: number) {
+  const session = await getSession();
+  if (!session) return [];
+  return getHotspotsByBusinessId(businessId);
 }
 
 export async function adminResetUserPassword(userId: number, newPassword: string) {

@@ -1,19 +1,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Table, Input, Button, Space, Tag, Typography, Card, Descriptions, Spin, Popconfirm, message } from 'antd';
-import { SearchOutlined, ClearOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Table, Input, Button, Space, Tag, Typography, Card, Descriptions, Spin, message } from 'antd';
+import { SearchOutlined, ClearOutlined } from '@ant-design/icons';
 import type { TablePaginationConfig } from 'antd';
-import { fetchUsers, fetchBusinessById, fetchUserById, fetchHotspotsByBusinessId, deleteBusiness } from '../../actions';
+import { fetchUsers, fetchBusinessById, fetchUserById, fetchHotspotsByBusinessId } from '../../actions';
 
 const { Title } = Typography;
 
-const statusColors: Record<number, string> = { 1: 'blue', 2: 'orange', 3: 'red' };
 const dayNames = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const hotspotStatusLabel: Record<number, string> = { 1: 'Payment Pending', 2: 'Active', 3: 'Ended', 4: 'Payment Failed' };
 const hotspotStatusColor: Record<number, string> = { 1: 'orange', 2: 'green', 3: 'default', 4: 'red' };
 
-export default function BusinessListPage() {
+export default function DeletedBusinessesPage() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
@@ -26,8 +25,8 @@ export default function BusinessListPage() {
   const [errorDetails, setErrorDetails] = useState<Record<number, string>>({});
   const [deletedUserDetails, setDeletedUserDetails] = useState<Record<number, any>>({});
   const [hotspotDetails, setHotspotDetails] = useState<Record<number, any[]>>({});
-  const [deleteReason, setDeleteReason] = useState('');
-  const load = async (pg: number, ps: number, name?: string, email?: string, status?: number) => {
+
+  const load = async (pg: number, ps: number, name?: string, email?: string) => {
     setLoading(true);
     try {
       const result = await fetchUsers({
@@ -36,7 +35,7 @@ export default function BusinessListPage() {
         Role: 2,
         UserName: name || undefined,
         UserEmail: email || undefined,
-        Status: status,
+        Status: 3,
       });
       setData(result.ResultData || []);
       setTotal(result.RowCount || 0);
@@ -47,18 +46,18 @@ export default function BusinessListPage() {
     }
   };
 
-  useEffect(() => { load(1, 10, '', '', 1); }, []);
+  useEffect(() => { load(1, 10); }, []);
 
   const handleSearch = () => {
     setPage(1);
-    load(1, pageSize, filterName, filterEmail, 1);
+    load(1, pageSize, filterName, filterEmail);
   };
 
   const handleClear = () => {
     setFilterName('');
     setFilterEmail('');
     setPage(1);
-    load(1, pageSize, '', '', 1);
+    load(1, pageSize);
   };
 
   const handleTableChange = (pagination: TablePaginationConfig) => {
@@ -66,7 +65,7 @@ export default function BusinessListPage() {
     const ps = pagination.pageSize || 10;
     setPage(pg);
     setPageSize(ps);
-    load(pg, ps, filterName, filterEmail, 1);
+    load(pg, ps, filterName, filterEmail);
   };
 
   const handleExpand = async (expanded: boolean, record: any) => {
@@ -82,38 +81,19 @@ export default function BusinessListPage() {
         setExpandedDetails((prev) => ({ ...prev, [key]: business }));
         const hotspots = await fetchHotspotsByBusinessId(businessId);
         setHotspotDetails((prev) => ({ ...prev, [key]: hotspots }));
-      } else if (Number(record.Status) === 3) {
-        // Deleted businesses: business record is inaccessible, fall back to the vendor user record for deletion info
+      } else {
+        // Deleted businesses: fall back to vendor user record for deletion info
         const user = await fetchUserById(record.Id);
         if (user) {
           setDeletedUserDetails((prev) => ({ ...prev, [key]: user }));
         } else {
           setErrorDetails((prev) => ({ ...prev, [key]: 'Could not load details for this deleted business.' }));
         }
-      } else {
-        setErrorDetails((prev) => ({ ...prev, [key]: `No data returned (tried BusinessId: ${record.BusinessId}, Id: ${record.Id})` }));
       }
     } catch (err: any) {
       setErrorDetails((prev) => ({ ...prev, [key]: err?.message || 'Failed to load business details' }));
     } finally {
       setLoadingDetails((prev) => ({ ...prev, [key]: false }));
-    }
-  };
-
-  // Soft-deletes the business by setting its owner vendor's status to Deleted
-  const handleDelete = async (record: any) => {
-    const result = await deleteBusiness(record.Id, deleteReason);
-    if (result.success) {
-      message.success('Business deleted');
-      setDeleteReason('');
-      setExpandedDetails((prev) => {
-        const next = { ...prev };
-        delete next[record.BusinessId ?? record.Id];
-        return next;
-      });
-      load(page, pageSize, filterName, filterEmail, filterStatus);
-    } else if ('error' in result) {
-      message.error(result.error);
     }
   };
 
@@ -124,11 +104,6 @@ export default function BusinessListPage() {
     { title: 'Business Name', dataIndex: 'BusinessName' },
     { title: 'Category', dataIndex: 'BusinessCategory' },
     { title: 'Type', dataIndex: 'BusinessType' },
-    {
-      title: 'Status',
-      dataIndex: 'StatusText',
-      render: (text: string, record: any) => <Tag color={statusColors[record.Status]}>{text}</Tag>,
-    },
     {
       title: 'Created On',
       dataIndex: 'CreatedOn',
@@ -207,7 +182,7 @@ export default function BusinessListPage() {
         )}
 
         {business.MessageFromOwner && (
-          <Card title="Owner&apos;s Message" size="small" style={{ marginBottom: 12 }}>
+          <Card title="Owner's Message" size="small" style={{ marginBottom: 12 }}>
             <p style={{ margin: 0 }}>{business.MessageFromOwner}</p>
           </Card>
         )}
@@ -259,44 +234,21 @@ export default function BusinessListPage() {
           </Card>
         )}
 
-        {Number(business.Status) === 3 && (
-          <Card title="Deletion Info" size="small" style={{ marginBottom: 12 }}>
-            <Descriptions column={1} size="small">
-              {business.AccountDeletedOn && (
-                <Descriptions.Item label="Deleted On">{new Date(business.AccountDeletedOn).toLocaleDateString()}</Descriptions.Item>
-              )}
-              <Descriptions.Item label="Reason">{business.AccountDeleteReason || '—'}</Descriptions.Item>
-            </Descriptions>
-          </Card>
-        )}
-
-        {Number(business.Status) !== 3 && (
-          <Popconfirm
-            title="Delete this business?"
-            description={
-              <Input.TextArea
-                placeholder="Reason for deletion (optional)"
-                value={deleteReason}
-                onChange={(e) => setDeleteReason(e.target.value)}
-                rows={2}
-                style={{ marginTop: 8 }}
-              />
-            }
-            onConfirm={() => handleDelete(record)}
-            onCancel={() => setDeleteReason('')}
-            okText="Delete"
-            okButtonProps={{ danger: true }}
-          >
-            <Button danger icon={<DeleteOutlined />}>Delete Business</Button>
-          </Popconfirm>
-        )}
+        <Card title="Deletion Info" size="small" style={{ marginBottom: 12 }}>
+          <Descriptions column={1} size="small">
+            {business.AccountDeletedOn && (
+              <Descriptions.Item label="Deleted On">{new Date(business.AccountDeletedOn).toLocaleDateString()}</Descriptions.Item>
+            )}
+            <Descriptions.Item label="Reason">{business.AccountDeleteReason || '—'}</Descriptions.Item>
+          </Descriptions>
+        </Card>
       </div>
     );
   };
 
   return (
     <>
-      <Title level={4}>Business</Title>
+      <Title level={4}>Deleted Businesses</Title>
       <Card size="small" style={{ marginBottom: 16 }}>
         <Space wrap>
           <Input placeholder="Name" value={filterName} onChange={(e) => setFilterName(e.target.value)} onPressEnter={handleSearch} style={{ width: 180 }} />

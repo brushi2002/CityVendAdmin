@@ -175,11 +175,13 @@ export default function UserListPage() {
           </Card>
         )}
 
-        {status === 3 && user.AccountDeletedOn && (
+        {status === 3 && (
           <Card title="Deletion Info" size="small" style={{ marginBottom: 12 }}>
             <Descriptions column={1} size="small">
-              <Descriptions.Item label="Deleted On">{new Date(user.AccountDeletedOn).toLocaleDateString()}</Descriptions.Item>
-              <Descriptions.Item label="Reason">{user.AccountDeleteReason}</Descriptions.Item>
+              {user.AccountDeletedOn && (
+                <Descriptions.Item label="Deleted On">{new Date(user.AccountDeletedOn).toLocaleDateString()}</Descriptions.Item>
+              )}
+              <Descriptions.Item label="Reason">{user.AccountDeleteReason || '—'}</Descriptions.Item>
             </Descriptions>
           </Card>
         )}

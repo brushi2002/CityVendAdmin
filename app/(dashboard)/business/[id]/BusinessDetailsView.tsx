@@ -8,7 +8,10 @@ const { Title } = Typography;
 const statusColors: Record<number, string> = { 1: 'blue', 2: 'orange', 3: 'red' };
 const dayNames = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
-export default function BusinessDetailsView({ business }: { business: any }) {
+const hotspotStatusLabel: Record<number, string> = { 1: 'Payment Pending', 2: 'Active', 3: 'Ended', 4: 'Payment Failed' };
+const hotspotStatusColor: Record<number, string> = { 1: 'orange', 2: 'green', 3: 'default', 4: 'red' };
+
+export default function BusinessDetailsView({ business, hotspots = [] }: { business: any; hotspots?: any[] }) {
   return (
     <>
       <Link href="/business" style={{ marginBottom: 16, display: 'inline-block' }}>Back to Business List</Link>
@@ -59,6 +62,31 @@ export default function BusinessDetailsView({ business }: { business: any }) {
         </Card>
       )}
 
+      <Card title="Hotspots" style={{ marginBottom: 16 }}>
+        {hotspots.length === 0 ? (
+          <p style={{ margin: 0, color: '#999' }}>No hotspots purchased.</p>
+        ) : (
+          <Table
+            rowKey="Id"
+            dataSource={hotspots}
+            pagination={false}
+            size="small"
+            columns={[
+              { title: 'Purchased', dataIndex: 'AddedOn', render: (v: any) => v ? new Date(v).toLocaleString() : '—' },
+              { title: 'Radius', dataIndex: 'RadiusInMiles', render: (v: number) => `${v} mi` },
+              { title: 'Active Window', render: (_: any, r: any) => r.StartsAt && r.EndsAt
+                  ? `${new Date(r.StartsAt).toLocaleString()} – ${new Date(r.EndsAt).toLocaleString()}`
+                  : '—'
+              },
+              { title: 'Status', dataIndex: 'Status', render: (v: number) =>
+                  <Tag color={hotspotStatusColor[v] ?? 'default'}>{hotspotStatusLabel[v] ?? v}</Tag>
+              },
+              { title: 'Message', dataIndex: 'Message' },
+            ]}
+          />
+        )}
+      </Card>
+
       {business.Hours?.length > 0 && (
         <Card title="Business Hours" style={{ marginBottom: 16 }}>
           <Table
@@ -74,11 +102,13 @@ export default function BusinessDetailsView({ business }: { business: any }) {
         </Card>
       )}
 
-      {business.AccountDeletedOn && (
+      {Number(business.Status) === 3 && (
         <Card title="Deletion Info" style={{ marginBottom: 16 }}>
           <Descriptions column={1}>
-            <Descriptions.Item label="Deleted On">{new Date(business.AccountDeletedOn).toLocaleDateString()}</Descriptions.Item>
-            <Descriptions.Item label="Reason">{business.AccountDeleteReason}</Descriptions.Item>
+            {business.AccountDeletedOn && (
+              <Descriptions.Item label="Deleted On">{new Date(business.AccountDeletedOn).toLocaleDateString()}</Descriptions.Item>
+            )}
+            <Descriptions.Item label="Reason">{business.AccountDeleteReason || '—'}</Descriptions.Item>
           </Descriptions>
         </Card>
       )}

@@ -27,6 +27,13 @@ export enum SubscriptionStatus {
   androidExpired = 24,
 }
 
+export enum HotspotStatus {
+  PaymentPending = 1,
+  Active = 2,
+  Ended = 3,
+  PaymentFailed = 4,
+}
+
 // Status description helper
 const statusDescriptions: Record<number, string> = {
   [Status.Active]: 'Active',
@@ -145,6 +152,21 @@ export interface BusinessDetails {
   HotspotMessage: string;
   IsFollowing: boolean;
   IsSubscribed: boolean | null;
+}
+
+export interface Hotspot {
+  Id: number;
+  BusinessId: number;
+  Lat: number;
+  Lng: number;
+  RadiusInMiles: number;
+  Message: string;
+  DurationInMin: number;
+  StartsAt: Date | null;
+  EndsAt: Date | null;
+  Status: number | null;
+  TransactionLogId: number | null;
+  AddedOn: Date | null;
 }
 
 export interface BusinessTypeMaster {

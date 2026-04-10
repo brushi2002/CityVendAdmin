@@ -68,11 +68,13 @@ export default function UserDetailsView({ user }: { user: any }) {
         </Card>
       )}
 
-      {status === 3 && user.AccountDeletedOn && (
+      {status === 3 && (
         <Card title="Deletion Info" style={{ marginBottom: 16 }}>
           <Descriptions column={1}>
-            <Descriptions.Item label="Deleted On">{new Date(user.AccountDeletedOn).toLocaleDateString()}</Descriptions.Item>
-            <Descriptions.Item label="Reason">{user.AccountDeleteReason}</Descriptions.Item>
+            {user.AccountDeletedOn && (
+              <Descriptions.Item label="Deleted On">{new Date(user.AccountDeletedOn).toLocaleDateString()}</Descriptions.Item>
+            )}
+            <Descriptions.Item label="Reason">{user.AccountDeleteReason || '—'}</Descriptions.Item>
           </Descriptions>
         </Card>
       )}
